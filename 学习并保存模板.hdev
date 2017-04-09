@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.1" halcon_version="12.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* This example finds pages of articles in a picture database.</c>
+<c>* In the first step different pages are trained and models are created.</c>
+<c>* Afterwards unknown images are searched and the correct article</c>
+<c>* pages are detected.</c>
+<c>* Please notice that this example needs some memory to train the models.</c>
+<c>* </c>
+<l>dev_update_off ()</l>
+<l>dev_close_window ()</l>
+<c></c>
+<l>read_image (Image, 'C:/Users/xushi/Desktop/MV_program/Final/template/4.jpg')</l>
+<l>get_image_size (Image, Width, Height)</l>
+<l>dev_open_window_fit_image (Image, 0, 0, -1, -1, WindowHandle)</l>
+<l>set_display_font (WindowHandle, 14, 'mono', 'true', 'false') </l>
+<l>dev_display (Image)</l>
+<c>* </c>
+<c>* Clear all already created descriptor models.</c>
+<l>ModelIDs := []</l>
+<l>ModelsFound := 0</l>
+<l>NumPoints := []</l>
+<l>NumModels := 18</l>
+<l>TotalTime := 0</l>
+<l>Need_1:=true</l>
+<c>* </c>
+<c>* Create region for visualization purpose.</c>
+<l>RowRoi := [10,10,Height - 10,Height - 10]</l>
+<l>ColRoi := [10,Width - 10,Width - 10,10]</l>
+<l>gen_rectangle1 (Rectangle, 10, 10, Height - 10, Width - 10)</l>
+<c></c>
+<l>*gen_rectangle1 (Rectangle,10,10, Height-10, Width-10)</l>
+<l>*gen_rectangle2 (Rectangle, 624.405, 697.18, rad(-88.3314), 332.778, 240.987)</l>
+<c></c>
+<l>disp_message (WindowHandle, ['Press \'Run\' to start model creation ...','(may take a few minutes)'], 'window', 10, 10, 'black', 'true')</l>
+<l>disp_continue_message (WindowHandle, 'black', 'true')</l>
+<l>stop ()</l>
+<c>* </c>
+<c>* For every page the descriptor model is created.</c>
+<c></c>
+<l>for Index := 1 to NumModels by 1</l>
+<l>    read_image (Image, 'C:/Users/xushi/Desktop/MV_program/Final/template/'+Index+'.jpg')</l>
+<l>    rgb1_to_gray (Image, ImageGray)</l>
+<l>    get_image_size (ImageGray, Width, Height)</l>
+<l>    reduce_domain (ImageGray, Rectangle, ImageReduced)</l>
+<l>    dev_clear_window ()</l>
+<l>    dev_display (ImageGray)</l>
+<l>    disp_message (WindowHandle, 'Creating model no. ' + Index + '/' + NumModels + ' ... please wait.', 'window', 10, 10, 'black', 'true')</l>
+<c>    * </c>
+<c>    * Create the descriptor model with default parameters (except scaling)</c>
+<c>    * For a fast detection, the harris binomial point detector is chosen.</c>
+<l>    count_seconds (Seconds1)</l>
+<l>    create_uncalib_descriptor_model (ImageReduced, 'harris_binomial', [], [],['min_rot','max_rot','min_scale','max_scale'], [-90,90,0.2,1.1], 42, ModelID)</l>
+<l>    count_seconds (Seconds2)</l>
+<l>    TotalTime := TotalTime + (Seconds2 - Seconds1)</l>
+<c>    * </c>
+<c>    * For the correct projection of the rectangles in a later step the origin</c>
+<c>    *   of the model has to be set to the image origin</c>
+<l>    set_descriptor_model_origin (ModelID, -Height / 2, -Width / 2)</l>
+<l>    ModelIDs := [ModelIDs,ModelID]</l>
+<c>    * </c>
+<c>    * Store the points which are extracted from the model for later matching.</c>
+<l>    get_descriptor_model_points (ModelID, 'model', 'all', Row_D, Col_D)</l>
+<l>    NumPoints := [NumPoints,|Row_D|]</l>
+<l>    gen_cross_contour_xld (Cross, Row_D, Col_D, 6, 0.785398)</l>
+<l>    write_descriptor_model(ModelID, 'seal614_'+Index+'.dsm')</l>
+<l>endfor</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>
